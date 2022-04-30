@@ -1,0 +1,421 @@
+#
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-v1
+  namespace: abshop
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+      version: v1
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: frontend
+        version: v1
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '8080'
+        prometheus.io/path: /metrics
+    spec:
+      containers:
+        - name: frontend
+          image: ckassen/frontend:latest
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8080
+          readinessProbe:
+            initialDelaySeconds: 10
+            httpGet:
+              path: "/healthz"
+              port: 8080
+              httpHeaders:
+              - name: "Cookie"
+                value: "abshop_sid=x-probe"
+          livenessProbe:
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            periodSeconds: 30
+            httpGet:
+              path: "/healthz"
+              port: 8080
+              httpHeaders:
+              - name: "Cookie"
+                value: "abshop_sid=x-probe"
+          envFrom:
+            - configMapRef:
+                name: services-environment-config
+          env:
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: abshop
+                key: frontend
+          resources:
+            requests:
+              cpu: 500m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1024Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-v1
+  namespace: abshop
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend
+    version: v1
+  ports:
+  - name: http
+    port: 8080
+---
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualNode
+metadata:
+  name: frontend-v1
+  namespace: abshop
+spec:
+  podSelector:
+    matchLabels:
+      app: frontend
+      version: v1
+  listeners:
+    - portMapping:
+        port: 8080
+        protocol: http
+  backends:
+    - virtualService:
+        virtualServiceRef:
+          name: redis
+    - virtualService:
+        virtualServiceRef:
+          name: catalogservice
+    - virtualService:
+        virtualServiceRef:
+          name: imageservice
+    - virtualService:
+        virtualServiceRef:
+          name: cartservice
+    - virtualService:
+        virtualServiceRef:
+          name: orderservice
+    - virtualService:
+        virtualServiceRef:
+          name: recommenderservice
+  serviceDiscovery:
+    dns:
+      hostname: frontend-v1.abshop.svc.cluster.local
+# Version 2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-v2a
+  namespace: abshop
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+      version: v2a
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: frontend
+        version: v2a
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '8080'
+        prometheus.io/path: /metrics
+    spec:
+      containers:
+        - name: frontend
+          image: ckassen/frontend:latest
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8080
+          readinessProbe:
+            initialDelaySeconds: 10
+            httpGet:
+              path: "/healthz"
+              port: 8080
+              httpHeaders:
+              - name: "Cookie"
+                value: "abshop_sid=x-probe"
+          livenessProbe:
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            periodSeconds: 30
+            httpGet:
+              path: "/healthz"
+              port: 8080
+              httpHeaders:
+              - name: "Cookie"
+                value: "abshop_sid=x-probe"
+          envFrom:
+            - configMapRef:
+                name: services-environment-config
+          env:
+          - name: VERSION
+            value: v2a
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: abshop
+                key: frontend
+          resources:
+            requests:
+              cpu: 500m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1024Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-v2a
+  namespace: abshop
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend
+    version: v2a
+  ports:
+  - name: http
+    port: 8080
+---
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualNode
+metadata:
+  name: frontend-v2a
+  namespace: abshop
+spec:
+  podSelector:
+    matchLabels:
+      app: frontend
+      version: v2a
+  listeners:
+    - portMapping:
+        port: 8080
+        protocol: http
+  backends:
+    - virtualService:
+        virtualServiceRef:
+          name: redis
+    - virtualService:
+        virtualServiceRef:
+          name: catalogservice
+    - virtualService:
+        virtualServiceRef:
+          name: imageservice
+    - virtualService:
+        virtualServiceRef:
+          name: cartservice
+    - virtualService:
+        virtualServiceRef:
+          name: orderservice
+    - virtualService:
+        virtualServiceRef:
+          name: recommenderservice
+  serviceDiscovery:
+    dns:
+      hostname: frontend-v2a.abshop.svc.cluster.local
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-v2b
+  namespace: abshop
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+      version: v2b
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: frontend
+        version: v2b
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '8080'
+        prometheus.io/path: /metrics
+    spec:
+      containers:
+        - name: frontend
+          image: ckassen/frontend:latest
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8080
+          readinessProbe:
+            initialDelaySeconds: 10
+            httpGet:
+              path: "/healthz"
+              port: 8080
+              httpHeaders:
+              - name: "Cookie"
+                value: "abshop_sid=x-probe"
+          livenessProbe:
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            periodSeconds: 30
+            httpGet:
+              path: "/healthz"
+              port: 8080
+              httpHeaders:
+              - name: "Cookie"
+                value: "abshop_sid=x-probe"
+          envFrom:
+            - configMapRef:
+                name: services-environment-config
+          env:
+          - name: VERSION
+            value: v2b
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: abshop
+                key: frontend
+          resources:
+            requests:
+              cpu: 500m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1024Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-v2b
+  namespace: abshop
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend
+    version: v2b
+  ports:
+  - name: http
+    port: 8080
+---
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualNode
+metadata:
+  name: frontend-v2b
+  namespace: abshop
+spec:
+  podSelector:
+    matchLabels:
+      app: frontend
+      version: v2b
+  listeners:
+    - portMapping:
+        port: 8080
+        protocol: http
+  backends:
+    - virtualService:
+        virtualServiceRef:
+          name: redis
+    - virtualService:
+        virtualServiceRef:
+          name: catalogservice
+    - virtualService:
+        virtualServiceRef:
+          name: imageservice
+    - virtualService:
+        virtualServiceRef:
+          name: cartservice
+    - virtualService:
+        virtualServiceRef:
+          name: orderservice
+    - virtualService:
+        virtualServiceRef:
+          name: recommenderservice
+  serviceDiscovery:
+    dns:
+      hostname: frontend-v2b.abshop.svc.cluster.local
+---
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualRouter
+metadata:
+  name: frontend-router
+  namespace: abshop
+spec:
+  listeners:
+    - portMapping:
+        port: 8080
+        protocol: http
+  routes:
+    - name: frontend-v1
+      httpRoute:
+        match:
+          prefix: /
+        action:
+          weightedTargets:
+            - virtualNodeRef:
+                name: frontend-v1
+              weight: 1
+---
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualService
+metadata:
+  name: frontend
+  namespace: abshop
+spec:
+  awsName: frontend.abshop.svc.cluster.local
+  provider:
+    virtualRouter:
+      virtualRouterRef:
+        name: frontend-router
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: abshop
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend
+  ports:
+  - name: http
+    port: 8080
+---
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: GatewayRoute
+metadata:
+  name: frontend-route
+  namespace: abshop
+spec:
+  httpRoute:
+    match:
+      prefix: /
+    action:
+      target:
+        virtualService:
+          virtualServiceRef:
+            name: frontend

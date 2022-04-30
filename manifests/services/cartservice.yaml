@@ -1,0 +1,154 @@
+#
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cartservice-v1
+  namespace: abshop
+spec:
+  selector:
+    matchLabels:
+      app: cartservice
+      version: v1
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cartservice
+        version: v1
+    spec:
+      containers:
+        - name: cartservice
+          image: ckassen/cartservice:latest
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8080
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            httpGet:
+              path: "/api/v1/healthz"
+              port: 8080
+          livenessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+            httpGet:
+              path: "/api/v1/healthz"
+              port: 8080
+          envFrom:
+            - configMapRef:
+                name: services-environment-config
+          env:
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: abshop
+                key: cartservice
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cartservice-v1
+  namespace: abshop
+spec:
+  type: ClusterIP
+  selector:
+    app: cartservice
+    version: v1
+  ports:
+  - name: http
+    port: 8080
+---
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualNode
+metadata:
+  name: cartservice-v1
+  namespace: abshop
+spec:
+  podSelector:
+    matchLabels:
+      app: cartservice
+      version: v1
+  listeners:
+    - portMapping:
+        port: 8080
+        protocol: http
+  backends:
+    - virtualService:
+        virtualServiceRef:
+          name: redis
+    - virtualService:
+        virtualServiceRef:
+          name: catalogservice
+  serviceDiscovery:
+    dns:
+      hostname: cartservice-v1.abshop.svc.cluster.local
+---
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualRouter
+metadata:
+  name: cartservice-router
+  namespace: abshop
+spec:
+  listeners:
+    - portMapping:
+        port: 8080
+        protocol: http
+  routes:
+    - name: cartservice-v1
+      httpRoute:
+        match:
+          prefix: /
+        action:
+          weightedTargets:
+            - virtualNodeRef:
+                name: cartservice-v1
+              weight: 1
+---
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualService
+metadata:
+  name: cartservice
+  namespace: abshop
+spec:
+  awsName: cartservice.abshop.svc.cluster.local
+  provider:
+    virtualRouter:
+      virtualRouterRef:
+        name: cartservice-router
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cartservice
+  namespace: abshop
+spec:
+  type: ClusterIP
+  selector:
+    app: cartservice
+  ports:
+  - name: http
+    port: 8080

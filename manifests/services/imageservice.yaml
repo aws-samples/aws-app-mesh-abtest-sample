@@ -1,0 +1,140 @@
+#
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: imageservice-v1
+  namespace: abshop
+spec:
+  selector:
+    matchLabels:
+      app: imageservice
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: imageservice
+        version: v1
+    spec:
+      containers:
+        - name: imageservice
+          image: ckassen/imageservice:latest
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 9000
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            httpGet:
+              path: "/healthz"
+              port: 9000
+          livenessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+            httpGet:
+              path: "/healthz"
+              port: 9000
+          envFrom:
+            - configMapRef:
+                name: services-environment-config
+          resources:
+            requests:
+              cpu: 150m
+              memory: 256Mi
+            limits:
+              cpu: 250m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: imageservice-v1
+  namespace: abshop
+spec:
+  type: ClusterIP
+  selector:
+    app: imageservice
+    version: v1
+  ports:
+  - name: http
+    port: 9000
+---
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualNode
+metadata:
+  name: imageservice-v1
+  namespace: abshop
+spec:
+  podSelector:
+    matchLabels:
+      app: imageservice
+      version: v1
+  listeners:
+    - portMapping:
+        port: 9000
+        protocol: http
+  serviceDiscovery:
+    dns:
+      hostname: imageservice-v1.abshop.svc.cluster.local
+---
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualRouter
+metadata:
+  name: imageservice-router
+  namespace: abshop
+spec:
+  listeners:
+    - portMapping:
+        port: 9000
+        protocol: http
+  routes:
+    - name: imageservice-v1
+      httpRoute:
+        match:
+          prefix: /
+        action:
+          weightedTargets:
+            - virtualNodeRef:
+                name: imageservice-v1
+              weight: 1
+---
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualService
+metadata:
+  name: imageservice
+  namespace: abshop
+spec:
+  awsName: imageservice.abshop.svc.cluster.local
+  provider:
+    virtualRouter:
+      virtualRouterRef:
+        name: imageservice-router
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: imageservice
+  namespace: abshop
+spec:
+  type: ClusterIP
+  selector:
+    app: imageservice
+  ports:
+  - name: http
+    port: 9000
