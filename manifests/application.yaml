@@ -54,7 +54,6 @@ data:
   IMAGE_ENDPOINT: "imageservice.abshop.svc.cluster.local:9000"
   # Redis in-cluster
   REDIS_ENDPOINT: "redis://redis.abshop.svc.cluster.local:6379/0"
-  AWS_XRAY_DAEMON_ADDRESS: "xray.abshop.svc.cluster.local:2000"
 
 ---
 apiVersion: v1

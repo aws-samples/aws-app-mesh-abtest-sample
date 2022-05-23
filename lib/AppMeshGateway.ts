@@ -15,8 +15,8 @@
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import * as cdk from "@aws-cdk/core";
-import * as eks from "@aws-cdk/aws-eks";
+import { Construct } from 'constructs';
+import * as eks from "aws-cdk-lib/aws-eks";
 
 export interface AppMeshGatewayProps {
   cluster: eks.Cluster;
@@ -24,8 +24,8 @@ export interface AppMeshGatewayProps {
   namespace?: string;
 }
 
-export class AppMeshGateway extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: AppMeshGatewayProps) {
+export class AppMeshGateway extends Construct {
+  constructor(scope: Construct, id: string, props: AppMeshGatewayProps) {
     super(scope, id);
 
     const { cluster } = props;
@@ -113,7 +113,7 @@ export class AppMeshGateway extends cdk.Construct {
                   {
                     name: "envoy",
                     image:
-                      "840364872350.dkr.ecr.eu-west-1.amazonaws.com/aws-appmesh-envoy:v1.20.0.1-prod",
+                      "840364872350.dkr.ecr.eu-west-1.amazonaws.com/aws-appmesh-envoy:v1.22.0.0-prod",
                     ports: [
                       {
                         containerPort: 8088,

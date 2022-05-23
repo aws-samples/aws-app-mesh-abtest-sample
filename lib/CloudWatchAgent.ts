@@ -15,20 +15,20 @@
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import * as cdk from "@aws-cdk/core";
-import * as eks from "@aws-cdk/aws-eks";
-import * as iam from "@aws-cdk/aws-iam";
+import { Construct } from 'constructs';
+import * as eks from "aws-cdk-lib/aws-eks";
+import * as iam from "aws-cdk-lib/aws-iam";
 
 export interface CloudWatchAgentProps {
   readonly cluster: eks.Cluster;
   readonly namespace?: string;
 }
 
-export class CloudWatchAgent extends cdk.Construct {
+export class CloudWatchAgent extends Construct {
 
   private namespaceManifest: eks.KubernetesManifest;
 
-  constructor(scope: cdk.Construct, id: string, props: CloudWatchAgentProps) {
+  constructor(scope: Construct, id: string, props: CloudWatchAgentProps) {
     super(scope, id);
 
     const { cluster } = props;
