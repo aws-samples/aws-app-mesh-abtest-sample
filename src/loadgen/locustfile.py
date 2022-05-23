@@ -17,7 +17,7 @@
 
 import random
 from bs4 import BeautifulSoup
-from locust import HttpLocust, TaskSet, task, between
+from locust import HttpUser, TaskSet, task, between
 
 
 def is_static_file(f):
@@ -103,6 +103,6 @@ class UserBehavior(TaskSet):
         self.client.get("/cart/order")
 
 
-class WebsiteUser(HttpLocust):
-    task_set = UserBehavior
+class WebsiteUser(HttpUser):
+    tasks = [UserBehavior]
     wait_time = between(2, 10)

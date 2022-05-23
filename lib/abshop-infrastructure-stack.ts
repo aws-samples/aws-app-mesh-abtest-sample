@@ -30,7 +30,7 @@ export class ABShopInfrastructureStack extends cdk.Stack {
     super(scope, id, props);
 
     var vpc = new ec2.Vpc(this, "VPC");
-    this.cluster = new eks.Cluster(this, "Cluster", { vpc, version: eks.KubernetesVersion.V1_20, defaultCapacity: 3 });
+    this.cluster = new eks.Cluster(this, "Cluster", { vpc, version: eks.KubernetesVersion.V1_20, defaultCapacity: 4 });
 
     new cdk.CfnOutput(this, 'UpdateKubeConfig', { value: `aws eks update-kubeconfig --name ${this.cluster.clusterName} --region ${this.region} --role-arn ${this.cluster.kubectlRole?.roleArn}` });
 
