@@ -22,7 +22,7 @@ name = "pypi"
 
 [packages]
 beautifulsoup4 = "*"
-locustio = "*"
+locust = "*"
 
 [dev-packages]
 

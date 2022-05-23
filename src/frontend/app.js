@@ -27,8 +27,7 @@ const session = require("express-session");
 const RedisStore = require("connect-redis")(session);
 
 const { createClient } = require("redis");
-const redisClient = createClient({ url: env.get("REDIS_ENDPOINT", "redis://localhost:6379/0").asString(), legacyMode: true });
-redisClient.connect().catch(console.error);
+const redisClient = createClient(env.get("REDIS_ENDPOINT", "redis://localhost:6379/0").asString());
 
 const infoRouter = require("./routes/info");
 const healthRouter = require("./routes/health");
@@ -60,7 +59,7 @@ app.use("/healthz", healthRouter); // Load health route early, does not need ses
 app.use("/api/v1/metrics", metricsRouter);
 
 const sessionMiddleware = session({
-  store: new RedisStore({ url: env.get("REDIS_ENDPOINT", "redis://localhost:6379/0").asString(), client: redisClient }),
+  store: new RedisStore({ client: redisClient }),
   secret: env.get("SECRET_KEY", "my not so random secret").asString(),
   resave: false,
   saveUninitialized: true,
