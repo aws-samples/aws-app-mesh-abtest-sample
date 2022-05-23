@@ -5,8 +5,7 @@
 #    pipenv lock --requirements
 #
 
--i https://pypi.org/simple/
-aws-xray-sdk==2.5.0
+-i https://pypi.org/simple
 botocore==1.25.4; python_version >= '3.6'
 certifi==2021.10.8
 chardet==3.0.4

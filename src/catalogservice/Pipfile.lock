@@ -16,14 +16,6 @@
         ]
     },
     "default": {
-        "aws-xray-sdk": {
-            "hashes": [
-                "sha256:8dfa785305fc8dc720d8d4c2ec6a58e85e467ddc3a53b1506a2ed8b5801c8fc7",
-                "sha256:ae57baeb175993bdbf31f83843e2c0958dd5aa8cb691ab5628aafb6ccc78a0fc"
-            ],
-            "index": "pypi",
-            "version": "==2.5.0"
-        },
         "boto3": {
             "hashes": [
                 "sha256:970bd7b332e73d7b51077ed36772c634811b38c81b0cc6ed0f910e50d7ebadf8",

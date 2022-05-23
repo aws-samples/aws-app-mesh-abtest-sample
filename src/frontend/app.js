@@ -26,6 +26,10 @@ const env = require("env-var");
 const session = require("express-session");
 const RedisStore = require("connect-redis")(session);
 
+const { createClient } = require("redis");
+const redisClient = createClient({ url: env.get("REDIS_ENDPOINT", "redis://localhost:6379/0").asString(), legacyMode: true });
+redisClient.connect().catch(console.error);
+
 const infoRouter = require("./routes/info");
 const healthRouter = require("./routes/health");
 const metricsRouter = require("./routes/metrics");
@@ -42,7 +46,7 @@ app.use(logger("common"));
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "hbs");
 hbs.registerPartials(__dirname + "/views/partials");
-hbs.registerHelper("imageservice", function() {
+hbs.registerHelper("imageservice", function () {
   return '/images';
 });
 
@@ -56,17 +60,15 @@ app.use("/healthz", healthRouter); // Load health route early, does not need ses
 app.use("/api/v1/metrics", metricsRouter);
 
 const sessionMiddleware = session({
-    store: new RedisStore({
-      url: env.get("REDIS_ENDPOINT", "redis://localhost:6379/0").asString()
-    }),
-    secret: env.get("SECRET_KEY", "my not so random secret").asString(),
-    resave: false,
-    saveUninitialized: true,
-    name: "microservices_store_sid"
-  });
+  store: new RedisStore({ url: env.get("REDIS_ENDPOINT", "redis://localhost:6379/0").asString(), client: redisClient }),
+  secret: env.get("SECRET_KEY", "my not so random secret").asString(),
+  resave: false,
+  saveUninitialized: true,
+  name: "microservices_store_sid"
+});
 
 // Session reconnect handling
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   var tries = 3;
 
   function lookupSession(error) {
@@ -87,7 +89,7 @@ app.use(function(req, res, next) {
 app.use(express.static(path.join(__dirname, "public")));
 
 // Custom flash middleware -- from Ethan Brown's book, 'Web Development with Node & Express'
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   // if there's a flash message in the session request, make it available in the response, then delete it
   if (req.session !== undefined) {
     res.locals.sessionFlash = req.session.sessionFlash;
@@ -96,8 +98,8 @@ app.use(function(req, res, next) {
   next();
 });
 
-app.use(function(req, res, next) {
-  if(!req.cookies['app_version']) {
+app.use(function (req, res, next) {
+  if (!req.cookies['app_version']) {
     res.cookie('app_version', env.get("VERSION", "v1").asString(), { httpOnly: true });
   }
   next();
@@ -110,12 +112,12 @@ app.use("/product", productRouter);
 app.use("/images", imagesRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   if (res.headersSent) {
     return next(err)
   }

@@ -15,17 +15,18 @@
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import * as cdk from '@aws-cdk/core';
-import * as eks from '@aws-cdk/aws-eks';
-import * as iam from '@aws-cdk/aws-iam';
+import { Construct } from 'constructs';
+import * as cdk from 'aws-cdk-lib';
+import * as eks from 'aws-cdk-lib/aws-eks';
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 export interface AppMeshProps {
   cluster: eks.Cluster,
   namespace?: string
 }
 
-export class AppMesh extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: AppMeshProps) {
+export class AppMesh extends Construct {
+  constructor(scope: Construct, id: string, props: AppMeshProps) {
     super(scope, id);
 
     const { cluster } = props;
