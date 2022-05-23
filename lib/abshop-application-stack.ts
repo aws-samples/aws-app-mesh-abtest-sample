@@ -15,8 +15,9 @@
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import * as cdk from '@aws-cdk/core';
-import * as eks from '@aws-cdk/aws-eks';
+import { Construct } from 'constructs';
+import * as cdk from 'aws-cdk-lib';
+import * as eks from 'aws-cdk-lib/aws-eks';
 import { ABShopService } from './abshop-service';
 import { KubernetesManifestFile } from './KubernetesManifestFile';
 import { AppMeshGateway } from './AppMeshGateway';
@@ -26,7 +27,7 @@ export interface ABShopApplicationProps {
 }
 
 export class ABShopApplicationStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props: ABShopApplicationProps) {
+  constructor(scope: Construct, id: string, props: ABShopApplicationProps) {
     super(scope, id);
 
     const { cluster } = props;

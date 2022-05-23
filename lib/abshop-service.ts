@@ -15,9 +15,9 @@
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import * as cdk from '@aws-cdk/core';
-import * as eks from '@aws-cdk/aws-eks';
-import * as assets from '@aws-cdk/aws-ecr-assets';
+import { Construct } from 'constructs';
+import * as eks from 'aws-cdk-lib/aws-eks';
+import * as assets from 'aws-cdk-lib/aws-ecr-assets';
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -30,8 +30,8 @@ export interface ABShopServiceProps {
   imageDirectory: string
 }
 
-export class ABShopService extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: ABShopServiceProps) {
+export class ABShopService extends Construct {
+  constructor(scope: Construct, id: string, props: ABShopServiceProps) {
     super(scope, id);
 
     const image = new assets.DockerImageAsset(this, 'ImageServiceImage', {
