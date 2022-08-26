@@ -60,11 +60,15 @@ spec:
       httpRoute:
         match:
           prefix: /
+          headers:
+            - name: User-Agent
+              match:
+                regex: ".*Chrome.*"
         action:
           weightedTargets:
             - virtualNodeRef:
                 name: frontend-v1
-              weight: 2
+              weight: 8
             - virtualNodeRef:
                 name: frontend-v2a
               weight: 1

@@ -98,6 +98,10 @@ app.use(function (req, res, next) {
 });
 
 app.use(function (req, res, next) {
+  if (req.query?.app_version) {
+    res.cookie('app_version', req.query?.app_version, { httpOnly: true });
+    res.redirect(req.originalUrl.split("?")[0]);
+  }
   if (!req.cookies['app_version']) {
     res.cookie('app_version', env.get("VERSION", "v1").asString(), { httpOnly: true });
   }
