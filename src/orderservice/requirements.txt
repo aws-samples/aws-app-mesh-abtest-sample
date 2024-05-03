@@ -15,7 +15,7 @@ flask-env==2.0.0
 flask==2.1.2
 gevent==21.12.0
 greenlet==1.1.2; platform_python_implementation == 'CPython'
-gunicorn==20.1.0
+gunicorn==22.0.0
 idna==3.3; python_version >= '3'
 importlib-metadata==4.11.4; python_version < '3.10'
 itsdangerous==2.1.2; python_version >= '3.7'

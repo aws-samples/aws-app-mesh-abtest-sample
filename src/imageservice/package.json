@@ -11,18 +11,18 @@
     "start": "nodemon -r dotenv/config ./bin/www"
   },
   "dependencies": {
-    "aws-sdk": "^2.1169.0",
-    "body-parser": "~1.20.0",
+    "aws-sdk": "^2.1613.0",
+    "body-parser": "~1.20.2",
     "debug": "~4.3.4",
-    "env-var": "^5.0.0",
-    "express": "^4.18.1",
-    "http-errors": "^1.7.3",
+    "env-var": "^7.4.1",
+    "express": "^4.19.2",
+    "http-errors": "^2.0.0",
     "morgan": "^1.10.0",
-    "sharp": "^0.30.7"
+    "sharp": "^0.33.3"
   },
   "devDependencies": {
-    "dotenv": "^8.2.0",
-    "minimist": ">=1.2.6",
-    "nodemon": "^2.0.19"
+    "dotenv": "^16.4.5",
+    "minimist": ">=1.2.8",
+    "nodemon": "^3.1.0"
   }
 }
