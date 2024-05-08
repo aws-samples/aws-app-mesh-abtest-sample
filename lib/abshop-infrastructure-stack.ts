@@ -28,7 +28,7 @@ export class ABShopInfrastructureStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    var vpc = new ec2.Vpc(this, "VPC");
+    const vpc = new ec2.Vpc(this, "VPC");
     this.cluster = new eks.Cluster(this, "Cluster", {
       vpc,
       version: eks.KubernetesVersion.V1_28,
